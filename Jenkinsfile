@@ -1,23 +1,9 @@
-pipeline {
-    agent any
-    stages {
-        stage('build Stage') {
-            steps {
-                withMaven(maven : 'Maven' ){
-                bat 'mvn clean'
-		}
-                
-            }
-        }
-		
-		stage('Testing Stage') {
-            steps {
-                withMaven(maven : 'Maven' ){
-                bat 'mvn test'
-		}
-            }
-        }
-		
-		
+podTemplate(label: BUILD_TAG, containers: [containerTemplate(name: 'maven', image: 'maven', command: 'sleep', args: 'infinity')]) {
+  node(BUILD_TAG) {
+    checkout scm
+    container('maven') {
+      bat 'mvn -B -ntp -Dmaven.test.failure.ignore verify'
     }
+    junit '**/target/surefire-reports/TEST-*.xml'
+  }
 }
